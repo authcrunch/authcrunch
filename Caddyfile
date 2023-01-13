@@ -1,0 +1,43 @@
+{
+	debug
+	local_certs
+	http_port 8080
+	https_port 8443
+	admin localhost:2999
+
+	security {
+		# secrets aws_secrets_manager access_token {
+		# 	region us-east-1
+		# 	path authcrunch/caddy/access_token
+		# }
+
+		# secrets aws_secrets_manager users/jsmith {
+		# 	region us-east-1
+		# 	path authcrunch/caddy/users/jsmith
+		# }
+
+		local identity store localdb {
+			realm local
+			path .tmp/users.json
+			# user jsmith {
+			# 	name "secrets:users/jsmith:name"
+			# 	email "secrets:users/jsmith:email"
+			# 	password "secrets:users/jsmith:password" overwrite
+			# 	# api_key "secrets:users/jsmith:api_key" overwrite
+			# 	roles authp/admin authp/user
+			# }
+		}
+
+		authentication portal myportal {
+			crypto default token lifetime 3600
+			crypto key sign-verify "secrets:access_token:value"
+			enable identity store localdb
+		}
+	}
+}
+
+127.0.0.1, localhost {
+	route {
+		respond * "1.0.0" 200
+	}
+}
