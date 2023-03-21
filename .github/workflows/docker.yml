@@ -1,7 +1,10 @@
 ---
 name: docker
 
-on: [workflow_dispatch]
+on: 
+  workflow_dispatch:
+  schedule:
+    - cron: '0 1 * * *'
 
 jobs:
   publish:
@@ -32,7 +35,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           logout: false
-      - name: Build and push image
+      - name: Build and push release image
+        if: ${{github.event_name == 'workflow_dispatch'}}
         uses: docker/build-push-action@v3
         with:
           context: .
@@ -43,4 +47,16 @@ jobs:
           platforms: linux/amd64,linux/arm64
           cache-from: "type=registry,\
             ref=ghcr.io/${{ github.event.repository.owner.login }}/authp:latest"
+          cache-to: type=inline
+      - name: Build and push beta image
+        if: ${{github.event_name == 'schedule'}}
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: "ghcr.io/${{ github.event.repository.owner.login }}/authp:beta"
+          platforms: linux/amd64,linux/arm64
+          cache-from: "type=registry,\
+            ref=ghcr.io/${{ github.event.repository.owner.login }}/authp:beta"
           cache-to: type=inline
