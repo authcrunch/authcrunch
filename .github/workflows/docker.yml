@@ -3,6 +3,15 @@ name: docker
 
 on: 
   workflow_dispatch:
+    inputs:
+      publish_type:
+        description: 'What type of image the job should publish'
+        required: false
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - beta
   schedule:
     - cron: '0 1 * * *'
 
@@ -36,7 +45,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           logout: false
       - name: Build and push release image
-        if: ${{github.event_name == 'workflow_dispatch'}}
+        if: ${{inputs.publish_type == 'release'}}
         uses: docker/build-push-action@v3
         with:
           context: .
@@ -49,7 +58,7 @@ jobs:
             ref=ghcr.io/${{ github.event.repository.owner.login }}/authp:latest"
           cache-to: type=inline
       - name: Build and push beta image
-        if: ${{github.event_name == 'schedule'}}
+        if: ${{ (github.event_name == 'schedule') || (inputs.publish_type == 'beta') }}
         uses: docker/build-push-action@v3
         with:
           context: .
