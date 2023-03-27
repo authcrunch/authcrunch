@@ -1,5 +1,3 @@
-.PHONY: dep release build_info build
-
 APP_NAME="authp"
 APP_VERSION:=$(shell cat VERSION | head -1)
 GIT_COMMIT:=$(shell git describe --dirty --always)
@@ -12,11 +10,14 @@ BUILD_DIR:=$(shell pwd)
 all: build_info build
 	@echo "$@: complete"
 
+.PHONY: build_info
 build_info:
 	@echo "Version: $(APP_VERSION), Branch: $(GIT_BRANCH), Revision: $(GIT_COMMIT)"
 	@echo "Build on $(BUILD_DATE) by $(BUILD_USER)"
 
+.PHONY: build
 build:
+	@echo "$@: started"
 	@rm -rf ./bin/$(APP_NAME)
 	@go build -v -o ./bin/$(APP_NAME) main.go
 	@./bin/$(APP_NAME) version
@@ -24,12 +25,15 @@ build:
 	@#bin/$(APP_NAME) validate --config ./Caddyfile
 	@echo "$@: complete"
 
+.PHONY: dep
 dep:
+	@echo "$@: started"
 	@versioned || go install github.com/greenpau/versioned/cmd/versioned@latest
 	@echo "$@: complete"
 
+.PHONY: release
 release:
-	@echo "Making release"
+	@echo "$@: started"
 	@go mod tidy
 	@go mod verify
 	@if [ $(GIT_BRANCH) != "main" ]; then echo "cannot release to non-main branch $(GIT_BRANCH)" && false; fi
