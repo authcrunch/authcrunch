@@ -1,4 +1,4 @@
-FROM caddy:builder AS builder
+FROM caddy:2-builder AS builder
 
 LABEL org.opencontainers.image.title=authp
 LABEL org.opencontainers.image.description="Authentication Portal"
@@ -13,6 +13,6 @@ RUN xcaddy build \
     --with github.com/greenpau/caddy-trace@latest \
     --with github.com/caddy-dns/cloudflare
 
-FROM caddy:latest
+FROM caddy:2
 
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
