@@ -51,11 +51,11 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: "ghcr.io/${{ github.event.repository.owner.login }}/authp:v${{ env.PKG_VERSION }},\
-            ghcr.io/${{ github.event.repository.owner.login }}/authp:latest"
+          tags: "ghcr.io/${{ github.event.repository.owner.login }}/authcrunch:v${{ env.PKG_VERSION }},\
+            ghcr.io/${{ github.event.repository.owner.login }}/authcrunch:latest"
           platforms: linux/amd64,linux/arm64
           cache-from: "type=registry,\
-            ref=ghcr.io/${{ github.event.repository.owner.login }}/authp:latest"
+            ref=ghcr.io/${{ github.event.repository.owner.login }}/authcrunch:latest"
           cache-to: type=inline
       - name: Build and push beta image
         if: ${{ (github.event_name == 'schedule') || (inputs.publish_type == 'beta') }}
@@ -64,8 +64,8 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: "ghcr.io/${{ github.event.repository.owner.login }}/authp:beta"
+          tags: "ghcr.io/${{ github.event.repository.owner.login }}/authcrunch:beta"
           platforms: linux/amd64,linux/arm64
           cache-from: "type=registry,\
-            ref=ghcr.io/${{ github.event.repository.owner.login }}/authp:beta"
+            ref=ghcr.io/${{ github.event.repository.owner.login }}/authcrunch:beta"
           cache-to: type=inline

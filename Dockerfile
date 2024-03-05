@@ -1,6 +1,6 @@
 FROM caddy:2-builder AS builder
 
-LABEL org.opencontainers.image.title=authp
+LABEL org.opencontainers.image.title=authcrunch
 LABEL org.opencontainers.image.description="Authentication Portal"
 LABEL org.opencontainers.image.url=https://github.com/greenpau/caddy-security
 LABEL org.opencontainers.image.source=https://github.com/greenpau/caddy-security

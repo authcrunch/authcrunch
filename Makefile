@@ -1,4 +1,4 @@
-APP_NAME="authp"
+APP_NAME="authcrunch"
 APP_VERSION:=$(shell cat VERSION | head -1)
 GIT_COMMIT:=$(shell git describe --dirty --always)
 GIT_BRANCH:=$(shell git rev-parse --abbrev-ref HEAD -- | head -1)

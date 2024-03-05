@@ -1,9 +1,9 @@
-project_name: authp
+project_name: authcrunch
 
 release:
   github:
-    owner: authp
-    name: authp
+    owner: authcrunch
+    name: authcrunch
   draft: false
   prerelease: auto
 
@@ -22,7 +22,7 @@ builds:
       - amd64
       - arm64
     main: ./
-    binary: ./bin/authp
+    binary: ./bin/authcrunch
     flags:
       - -trimpath
       - -mod=readonly
@@ -34,7 +34,7 @@ builds:
 
 
 nfpms:
-  - id: authp
+  - id: authcrunch
     maintainer: "Paul Greenberg <greenpau@outlook.com>"
     file_name_template: >-
       {{ .ProjectName }}_
@@ -50,4 +50,8 @@ changelog:
     - '^docs?:'
     - '^readme:'
     - '^tests?:'
+    - '^misc:'
+    - '^upgrade'
+    - '^update'
+    - '^github'
     # - '^\w+\s+' # a hack to remove commit messages without colons thus don't correspond to a package

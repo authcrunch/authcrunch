@@ -1,4 +1,4 @@
-module github.com/authp/authp
+module github.com/authcrunch/authcrunch
 
 go 1.20
 
