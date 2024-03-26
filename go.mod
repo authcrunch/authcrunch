@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/caddyserver/caddy/v2 v2.7.6
-	github.com/greenpau/caddy-security v1.1.27
+	github.com/greenpau/caddy-security v1.1.28
 	github.com/greenpau/caddy-security-secrets-aws-secrets-manager v1.0.1
 	github.com/greenpau/caddy-trace v1.1.13
 )
@@ -74,7 +74,7 @@ require (
 	github.com/google/go-tspi v0.3.0 // indirect
 	github.com/google/pprof v0.0.0-20231127191134-f3a68a39ae15 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/greenpau/go-authcrunch v1.0.50 // indirect
+	github.com/greenpau/go-authcrunch v1.1.3 // indirect
 	github.com/greenpau/go-authcrunch-secrets-aws-secrets-manager v1.0.3 // indirect
 	github.com/greenpau/versioned v1.0.30 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.1 // indirect
