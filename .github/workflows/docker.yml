@@ -46,7 +46,7 @@ jobs:
           logout: false
       - name: Build and push release image
         if: ${{inputs.publish_type == 'release'}}
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
@@ -59,7 +59,7 @@ jobs:
           cache-to: type=inline
       - name: Build and push beta image
         if: ${{ (github.event_name == 'schedule') || (inputs.publish_type == 'beta') }}
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
