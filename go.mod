@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/caddyserver/caddy/v2 v2.11.1
-	github.com/greenpau/caddy-security v1.1.33
+	github.com/greenpau/caddy-security v1.1.34
 	github.com/greenpau/caddy-security-secrets-aws-secrets-manager v1.0.1
 	github.com/greenpau/caddy-trace v1.1.13
 )
@@ -85,7 +85,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.11 // indirect
 	github.com/googleapis/gax-go/v2 v2.17.0 // indirect
-	github.com/greenpau/go-authcrunch v1.1.9 // indirect
+	github.com/greenpau/go-authcrunch v1.1.10 // indirect
 	github.com/greenpau/go-authcrunch-secrets-aws-secrets-manager v1.0.3 // indirect
 	github.com/greenpau/versioned v1.0.30 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.7 // indirect
@@ -110,6 +110,7 @@ require (
 	github.com/mitchellh/go-ps v1.0.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/nicksnyder/go-i18n/v2 v2.6.1 // indirect
 	github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58 // indirect
 	github.com/pires/go-proxyproto v0.11.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
