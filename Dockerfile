@@ -1,6 +1,6 @@
 FROM caddy:2.11.1-builder AS builder
 
-RUN GOTOOLCHAIN=go1.24.1 xcaddy build \
+RUN xcaddy build \
     --with github.com/greenpau/caddy-security@latest \
     --with github.com/greenpau/caddy-security-secrets-aws-secrets-manager@latest \
     --with github.com/greenpau/caddy-trace@latest \
