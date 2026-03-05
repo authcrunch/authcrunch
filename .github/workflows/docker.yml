@@ -50,6 +50,9 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
+          build-args: |
+            GOTOOLCHAIN=go1.25.0
+            GO_VERSION=1.25.0
           push: true
           tags: "ghcr.io/${{ github.event.repository.owner.login }}/authcrunch:v${{ env.PKG_VERSION }},\
             ghcr.io/${{ github.event.repository.owner.login }}/authcrunch:latest"
@@ -63,6 +66,9 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
+          build-args: |
+            GOTOOLCHAIN=go1.25.0
+            GO_VERSION=1.25.0
           push: true
           tags: "ghcr.io/${{ github.event.repository.owner.login }}/authcrunch:beta"
           platforms: linux/amd64,linux/arm64
