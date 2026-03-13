@@ -1,4 +1,4 @@
-FROM caddy:2.11.1-builder AS builder
+FROM caddy:2.11.2-builder AS builder
 
 RUN xcaddy build \
     --with github.com/greenpau/caddy-security@latest \
@@ -6,7 +6,7 @@ RUN xcaddy build \
     --with github.com/greenpau/caddy-trace@latest \
     --with github.com/caddy-dns/cloudflare
 
-FROM caddy:2.11.1
+FROM caddy:2.11.2
 
 LABEL org.opencontainers.image.title=authcrunch
 LABEL org.opencontainers.image.description="Authentication Portal"
