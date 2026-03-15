@@ -1,7 +1,7 @@
 FROM caddy:2.11.2-builder AS builder
 
 RUN xcaddy build \
-    --with github.com/greenpau/caddy-security@latest \
+    --with github.com/greenpau/caddy-security@v1.1.48 \
     --with github.com/greenpau/caddy-security-secrets-aws-secrets-manager@latest \
     --with github.com/greenpau/caddy-trace@latest \
     --with github.com/caddy-dns/cloudflare

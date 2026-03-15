@@ -41,6 +41,7 @@ sync:
 	$(eval TARGET_PLUGIN_VERSION=$(shell cat ../../greenpau/caddy-security/VERSION | head -1))
 	@echo "$@: caddy-security version: ${TARGET_PLUGIN_VERSION}"
 	@sed -i '' 's/caddy-security v[0-9]\.[0-9]*\.[0-9]*/caddy-security v'"${TARGET_PLUGIN_VERSION}"'/' go.mod
+	@sed -i '' 's/caddy-security@v[0-9]\.[0-9]*\.[0-9]*/caddy-security@v'"${TARGET_PLUGIN_VERSION}"'/' Dockerfile
 	@go mod tidy
 	@go mod verify
 	@echo "$@: complete"
