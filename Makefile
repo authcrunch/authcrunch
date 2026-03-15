@@ -46,7 +46,7 @@ sync:
 	@echo "$@: complete"
 
 .PHONY: release
-release: sync
+release:
 	@echo "$@: started"
 	@go mod tidy;
 	@go mod verify;
