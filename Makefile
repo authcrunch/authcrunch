@@ -35,6 +35,8 @@ dep:
 .PHONY: sync
 sync:
 	@echo "$@: started"
+	$(eval CS_AWS_SM_PLUGIN_VERSION=$(git -c 'versionsort.suffix=-'ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/greenpau/caddy-security-secrets-aws-secrets-manager '*.*.*'))
+	@echo "$@: caddy-security-secrets-aws-secrets-manager version: ${CS_AWS_SM_PLUGIN_VERSION}"
 	$(eval TARGET_LIB_VERSION=$(shell cat ../../greenpau/go-authcrunch/VERSION | head -1))
 	@echo "$@: go-authcrunch version: ${TARGET_LIB_VERSION}"
 	@sed -i '' 's/org.opencontainers.image.version=[0-9]\.[0-9]*\.[0-9]*/org.opencontainers.image.version='"${TARGET_LIB_VERSION}"'/' Dockerfile
