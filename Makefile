@@ -31,6 +31,20 @@ dep:
 	@versioned || go install github.com/greenpau/versioned/cmd/versioned@latest
 	@echo "$@: complete"
 
+
+.PHONY: sync
+sync:
+	@echo "$@: started"
+	$(eval TARGET_LIB_VERSION=$(shell cat ../../greenpau/go-authcrunch/VERSION | head -1))
+	@echo "$@: go-authcrunch version: ${TARGET_LIB_VERSION}"
+	@sed -i '' 's/org.opencontainers.image.version=[0-9]\.[0-9]*\.[0-9]*/org.opencontainers.image.version='"${TARGET_LIB_VERSION}"'/' Dockerfile
+	$(eval TARGET_PLUGIN_VERSION=$(shell cat ../../greenpau/caddy-security/VERSION | head -1))
+	@echo "$@: caddy-security version: ${TARGET_PLUGIN_VERSION}"
+	@sed -i '' 's/caddy-security v[0-9]\.[0-9]*\.[0-9]*/caddy-security v'"${TARGET_PLUGIN_VERSION}"'/' go.mod
+	@go mod tidy
+	@go mod verify
+	@echo "$@: complete"
+
 .PHONY: release
 release:
 	@echo "$@: started"
