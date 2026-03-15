@@ -2,8 +2,8 @@ FROM caddy:2.11.2-builder AS builder
 
 RUN xcaddy build \
     --with github.com/greenpau/caddy-security@v1.1.48 \
-    --with github.com/greenpau/caddy-security-secrets-aws-secrets-manager@latest \
-    --with github.com/greenpau/caddy-trace@latest \
+    --with github.com/greenpau/caddy-security-secrets-aws-secrets-manager@v1.0.1 \
+    --with github.com/greenpau/caddy-trace@v1.1.13 \
     --with github.com/caddy-dns/cloudflare
 
 RUN go install github.com/greenpau/go-authcrunch/cmd/authdbctl@latest

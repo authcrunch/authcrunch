@@ -60,6 +60,11 @@ jobs:
           cache-from: "type=registry,\
             ref=ghcr.io/${{ github.event.repository.owner.login }}/authcrunch:latest"
           cache-to: type=inline
+      - name: Sync Dockerfile for Beta
+        if: ${{ (github.event_name == 'schedule') || (inputs.publish_type == 'beta') }}
+        run: |
+          make sync
+          git diff Dockerfile
       - name: Build and push beta image
         if: ${{ (github.event_name == 'schedule') || (inputs.publish_type == 'beta') }}
         uses: docker/build-push-action@v6

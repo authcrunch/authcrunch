@@ -35,15 +35,19 @@ dep:
 .PHONY: sync
 sync:
 	@echo "$@: started"
-	$(eval CS_AWS_SM_PLUGIN_VERSION=$(git -c 'versionsort.suffix=-'ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/greenpau/caddy-security-secrets-aws-secrets-manager '*.*.*'))
+	$(eval TRACE_PLUGIN_VERSION=$(shell git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/greenpau/caddy-trace '*.*.*' | tail --lines=1 | cut -f2 | cut -d"/" -f3 | sed 's/v//'))
+	@echo "$@: caddy-trace version: ${TRACE_PLUGIN_VERSION}"
+	$(eval CS_AWS_SM_PLUGIN_VERSION=$(shell git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/greenpau/caddy-security-secrets-aws-secrets-manager '*.*.*' | tail --lines=1 | cut -f2 | cut -d"/" -f3 | sed 's/v//'))
 	@echo "$@: caddy-security-secrets-aws-secrets-manager version: ${CS_AWS_SM_PLUGIN_VERSION}"
-	$(eval TARGET_LIB_VERSION=$(shell cat ../../greenpau/go-authcrunch/VERSION | head -1))
+	$(eval TARGET_LIB_VERSION=$(shell git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/greenpau/go-authcrunch '*.*.*' | tail --lines=1 | cut -f2 | cut -d"/" -f3 | sed 's/v//'))
 	@echo "$@: go-authcrunch version: ${TARGET_LIB_VERSION}"
-	@sed -i '' 's/org.opencontainers.image.version=[0-9]\.[0-9]*\.[0-9]*/org.opencontainers.image.version='"${TARGET_LIB_VERSION}"'/' Dockerfile
-	$(eval TARGET_PLUGIN_VERSION=$(shell cat ../../greenpau/caddy-security/VERSION | head -1))
+	$(eval TARGET_PLUGIN_VERSION=$(shell git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/greenpau/caddy-security '*.*.*' | tail --lines=1 | cut -f2 | cut -d"/" -f3 | sed 's/v//'))
 	@echo "$@: caddy-security version: ${TARGET_PLUGIN_VERSION}"
+	@sed -i '' 's/org.opencontainers.image.version=[0-9]\.[0-9]*\.[0-9]*/org.opencontainers.image.version='"${TARGET_LIB_VERSION}"'/' Dockerfile
 	@sed -i '' 's/caddy-security v[0-9]\.[0-9]*\.[0-9]*/caddy-security v'"${TARGET_PLUGIN_VERSION}"'/' go.mod
 	@sed -i '' 's/caddy-security@v[0-9]\.[0-9]*\.[0-9]*/caddy-security@v'"${TARGET_PLUGIN_VERSION}"'/' Dockerfile
+	@sed -i '' 's/caddy-security-secrets-aws-secrets-manager@v[0-9]\.[0-9]*\.[0-9]*/caddy-security-secrets-aws-secrets-manager@v'"${CS_AWS_SM_PLUGIN_VERSION}"'/' Dockerfile
+	@sed -i '' 's/caddy-trace@v[0-9]\.[0-9]*\.[0-9]*/caddy-trace@v'"${TRACE_PLUGIN_VERSION}"'/' Dockerfile
 	@go mod tidy
 	@go mod verify
 	@echo "$@: complete"
