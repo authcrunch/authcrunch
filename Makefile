@@ -7,6 +7,13 @@ BUILD_USER:=$(shell whoami)
 BUILD_DATE:=$(shell date +"%Y-%m-%d")
 BUILD_DIR:=$(shell pwd)
 
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+    SED_I := sed -i ""
+else
+    SED_I := sed -i
+endif
+
 all: build_info build
 	@echo "$@: complete"
 
@@ -43,11 +50,11 @@ sync:
 	@echo "$@: go-authcrunch version: ${TARGET_LIB_VERSION}"
 	$(eval TARGET_PLUGIN_VERSION=$(shell git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/greenpau/caddy-security '*.*.*' | tail --lines=1 | cut -f2 | cut -d"/" -f3 | sed 's/v//'))
 	@echo "$@: caddy-security version: ${TARGET_PLUGIN_VERSION}"
-	@sed -i '' 's/org.opencontainers.image.version=[0-9]\.[0-9]*\.[0-9]*/org.opencontainers.image.version='"${TARGET_LIB_VERSION}"'/' Dockerfile
-	@sed -i '' 's/caddy-security v[0-9]\.[0-9]*\.[0-9]*/caddy-security v'"${TARGET_PLUGIN_VERSION}"'/' go.mod
-	@sed -i '' 's/caddy-security@v[0-9]\.[0-9]*\.[0-9]*/caddy-security@v'"${TARGET_PLUGIN_VERSION}"'/' Dockerfile
-	@sed -i '' 's/caddy-security-secrets-aws-secrets-manager@v[0-9]\.[0-9]*\.[0-9]*/caddy-security-secrets-aws-secrets-manager@v'"${CS_AWS_SM_PLUGIN_VERSION}"'/' Dockerfile
-	@sed -i '' 's/caddy-trace@v[0-9]\.[0-9]*\.[0-9]*/caddy-trace@v'"${TRACE_PLUGIN_VERSION}"'/' Dockerfile
+	@$(SED_I) 's/org.opencontainers.image.version=[0-9]\.[0-9]*\.[0-9]*/org.opencontainers.image.version='"${TARGET_LIB_VERSION}"'/' Dockerfile
+	@$(SED_I) 's/caddy-security v[0-9]\.[0-9]*\.[0-9]*/caddy-security v'"${TARGET_PLUGIN_VERSION}"'/' go.mod
+	@$(SED_I) 's/caddy-security@v[0-9]\.[0-9]*\.[0-9]*/caddy-security@v'"${TARGET_PLUGIN_VERSION}"'/' Dockerfile
+	@$(SED_I) 's/caddy-security-secrets-aws-secrets-manager@v[0-9]\.[0-9]*\.[0-9]*/caddy-security-secrets-aws-secrets-manager@v'"${CS_AWS_SM_PLUGIN_VERSION}"'/' Dockerfile
+	@$(SED_I) 's/caddy-trace@v[0-9]\.[0-9]*\.[0-9]*/caddy-trace@v'"${TRACE_PLUGIN_VERSION}"'/' Dockerfile
 	@go mod tidy
 	@go mod verify
 	@echo "$@: complete"
