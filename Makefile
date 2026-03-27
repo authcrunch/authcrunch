@@ -38,9 +38,8 @@ dep:
 	@versioned || go install github.com/greenpau/versioned/cmd/versioned@latest
 	@echo "$@: complete"
 
-
-.PHONY: sync
-sync:
+.PHONY: sync-versions
+sync-versions:
 	@echo "$@: started"
 	$(eval TRACE_PLUGIN_VERSION=$(shell git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/greenpau/caddy-trace '*.*.*' | tail --lines=1 | cut -f2 | cut -d"/" -f3 | sed 's/v//'))
 	@echo "$@: caddy-trace version: ${TRACE_PLUGIN_VERSION}"
@@ -55,8 +54,25 @@ sync:
 	@$(SED_I) 's/caddy-security@v[0-9]\.[0-9]*\.[0-9]*/caddy-security@v'"${TARGET_PLUGIN_VERSION}"'/' Dockerfile
 	@$(SED_I) 's/caddy-security-secrets-aws-secrets-manager@v[0-9]\.[0-9]*\.[0-9]*/caddy-security-secrets-aws-secrets-manager@v'"${CS_AWS_SM_PLUGIN_VERSION}"'/' Dockerfile
 	@$(SED_I) 's/caddy-trace@v[0-9]\.[0-9]*\.[0-9]*/caddy-trace@v'"${TRACE_PLUGIN_VERSION}"'/' Dockerfile
+	@echo "$@: complete"
+
+.PHONY: sync-mod
+sync-mod:
+	@echo "$@: started"
 	@go mod tidy
 	@go mod verify
+	@echo "$@: complete"
+
+.PHONY: sync-commit
+sync-commit:
+	@echo "$@: started"
+	@git add Dockerfile Makefile go.mod go.sum
+	$(eval TARGET_PLUGIN_VERSION=$(shell git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/greenpau/caddy-security '*.*.*' | tail --lines=1 | cut -f2 | cut -d"/" -f3 | sed 's/v//'))
+	@echo "git commit -m 'upgraded to caddy-security v"${TARGET_PLUGIN_VERSION}"'"
+	@echo "$@: complete"
+
+.PHONY: sync
+sync: sync-versions sync-mod build sync-commit
 	@echo "$@: complete"
 
 .PHONY: release
