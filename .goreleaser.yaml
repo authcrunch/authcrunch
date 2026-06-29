@@ -6,6 +6,7 @@ release:
     name: authcrunch
   draft: false
   prerelease: auto
+  footer: "{{ .Env.AUTHCRUNCH_DEPENDENCY_CHANGELOG }}"
 
 checksum:
   name_template: "{{.ProjectName}}_{{.Version}}_SHA256SUMS"
