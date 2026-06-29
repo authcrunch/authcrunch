@@ -85,7 +85,7 @@ release:
 	@versioned -patch
 	@echo "Patched version"
 	@git add VERSION
-	@git commit -m "released v`cat VERSION | head -1`"
+	@git commit -m "ops: released v`cat VERSION | head -1`"
 	@git tag -a v`cat VERSION | head -1` -m "v`cat VERSION | head -1`"
 	@git push
 	@git push --tags
