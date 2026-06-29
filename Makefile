@@ -49,8 +49,13 @@ sync-versions:
 	@echo "$@: go-authcrunch version: ${TARGET_LIB_VERSION}"
 	$(eval TARGET_PLUGIN_VERSION=$(shell git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/greenpau/caddy-security '*.*.*' | tail --lines=1 | cut -f2 | cut -d"/" -f3 | sed 's/v//'))
 	@echo "$@: caddy-security version: ${TARGET_PLUGIN_VERSION}"
+	$(eval TARGET_CADDY_VERSION=$(shell git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/caddyserver/caddy 'v2.*.*' | tail --lines=1 | cut -f2 | cut -d"/" -f3 | sed 's/v//'))
+	@echo "$@: caddy version: ${TARGET_CADDY_VERSION}"
 	@$(SED_I) 's/org.opencontainers.image.version=[0-9]\.[0-9]*\.[0-9]*/org.opencontainers.image.version='"${TARGET_LIB_VERSION}"'/' Dockerfile
+	@$(SED_I) 's#github.com/caddyserver/caddy/v2 v[0-9]\.[0-9]*\.[0-9]*#github.com/caddyserver/caddy/v2 v'"${TARGET_CADDY_VERSION}"'#' go.mod
 	@$(SED_I) 's/caddy-security v[0-9]\.[0-9]*\.[0-9]*/caddy-security v'"${TARGET_PLUGIN_VERSION}"'/' go.mod
+	@$(SED_I) 's/^FROM caddy:[0-9]\.[0-9]*\.[0-9]*-builder AS builder$$/FROM caddy:'"${TARGET_CADDY_VERSION}"'-builder AS builder/' Dockerfile
+	@$(SED_I) 's/^FROM caddy:[0-9]\.[0-9]*\.[0-9]*$$/FROM caddy:'"${TARGET_CADDY_VERSION}"'/' Dockerfile
 	@$(SED_I) 's/caddy-security@v[0-9]\.[0-9]*\.[0-9]*/caddy-security@v'"${TARGET_PLUGIN_VERSION}"'/' Dockerfile
 	@$(SED_I) 's/caddy-security-secrets-aws-secrets-manager@v[0-9]\.[0-9]*\.[0-9]*/caddy-security-secrets-aws-secrets-manager@v'"${CS_AWS_SM_PLUGIN_VERSION}"'/' Dockerfile
 	@$(SED_I) 's/caddy-trace@v[0-9]\.[0-9]*\.[0-9]*/caddy-trace@v'"${TRACE_PLUGIN_VERSION}"'/' Dockerfile

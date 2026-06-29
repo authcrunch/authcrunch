@@ -1,4 +1,4 @@
-FROM caddy:2.11.2-builder AS builder
+FROM caddy:2.11.4-builder AS builder
 
 RUN xcaddy build \
     --with github.com/greenpau/caddy-security@v1.1.63 \
@@ -8,7 +8,7 @@ RUN xcaddy build \
 
 RUN go install github.com/greenpau/go-authcrunch/cmd/authdbctl@latest
 
-FROM caddy:2.11.2
+FROM caddy:2.11.4
 
 LABEL org.opencontainers.image.title=authcrunch
 LABEL org.opencontainers.image.description="Authentication Portal"
