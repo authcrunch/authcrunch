@@ -1,0 +1,4 @@
+interface:
+  display_name: "Testing and CI"
+  short_description: "authcrunch test and CI workflow"
+  default_prompt: "Use $testing-and-ci to choose and run the right authcrunch validation workflow."

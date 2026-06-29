@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dockerfile Management"
+  short_description: "authcrunch Dockerfile and image workflow"
+  default_prompt: "Use $dockerfile-management to update or validate the authcrunch Dockerfile workflow."

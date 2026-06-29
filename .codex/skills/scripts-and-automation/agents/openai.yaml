@@ -1,0 +1,4 @@
+interface:
+  display_name: "Scripts and Automation"
+  short_description: "authcrunch automation commands"
+  default_prompt: "Use $scripts-and-automation to choose the correct authcrunch automation command."
