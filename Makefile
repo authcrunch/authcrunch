@@ -68,7 +68,7 @@ sync-commit:
 	@echo "$@: started"
 	@git add Dockerfile Makefile go.mod go.sum
 	$(eval TARGET_PLUGIN_VERSION=$(shell git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/greenpau/caddy-security '*.*.*' | tail --lines=1 | cut -f2 | cut -d"/" -f3 | sed 's/v//'))
-	@echo "git commit -m 'upgraded to caddy-security v"${TARGET_PLUGIN_VERSION}"'"
+	@echo "git commit -m 'ops: upgraded to caddy-security v"${TARGET_PLUGIN_VERSION}"'"
 	@echo "$@: complete"
 
 .PHONY: sync

@@ -1,7 +1,7 @@
 FROM caddy:2.11.2-builder AS builder
 
 RUN xcaddy build \
-    --with github.com/greenpau/caddy-security@v1.1.62 \
+    --with github.com/greenpau/caddy-security@v1.1.63 \
     --with github.com/greenpau/caddy-security-secrets-aws-secrets-manager@v1.0.1 \
     --with github.com/greenpau/caddy-trace@v1.1.13 \
     --with github.com/caddy-dns/cloudflare
@@ -14,7 +14,7 @@ LABEL org.opencontainers.image.title=authcrunch
 LABEL org.opencontainers.image.description="Authentication Portal"
 LABEL org.opencontainers.image.url=https://github.com/greenpau/caddy-security
 LABEL org.opencontainers.image.source=https://github.com/greenpau/caddy-security
-LABEL org.opencontainers.image.version=1.1.39
+LABEL org.opencontainers.image.version=1.1.40
 LABEL maintainer="greenpau"
 
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
