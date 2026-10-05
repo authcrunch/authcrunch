@@ -7,6 +7,10 @@ BUILD_USER:=$(shell whoami)
 BUILD_DATE:=$(shell date +"%Y-%m-%d")
 BUILD_DIR:=$(shell pwd)
 
+# Fetch published module contents even when the local Go config uses direct.
+# Checksum verification remains enabled; override for a custom module proxy.
+SYNC_GOPROXY ?= https://proxy.golang.org,direct
+
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
     SED_I := sed -i ""
@@ -64,7 +68,7 @@ sync-versions:
 .PHONY: sync-mod
 sync-mod:
 	@echo "$@: started"
-	@go mod tidy
+	@GOPROXY="$(SYNC_GOPROXY)" go mod tidy
 	@go mod verify
 	@echo "$@: complete"
 
