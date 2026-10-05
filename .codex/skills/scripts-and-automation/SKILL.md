@@ -8,7 +8,7 @@ description: authcrunch repository automation, Makefile target selection, local 
 ## Overview
 
 Use the Makefile as the primary automation surface for this Go module. There is
-no top-level `scripts/` directory; local automation lives in `Makefile`,
+no top-level `scripts/` directory; local automation lives in `assets/scripts`, `Makefile`,
 `.github/workflows`, `.goreleaser.yaml`, and the top-level `Dockerfile`.
 
 Prefer direct `go test` or `go build` commands for narrow validation while
@@ -27,6 +27,11 @@ behavior, dependency/version sync, release work, or CI-like validation.
 - Use `make dep` to ensure `versioned` is installed or install it with
   `go install github.com/greenpau/versioned/cmd/versioned@latest`.
 - Use `make sync-mod` to run `go mod tidy` and `go mod verify`.
+  Tidy uses `SYNC_GOPROXY`, defaulting to `https://proxy.golang.org,direct`.
+- Use `make test-automation` for offline release/version regression tests.
+- Use `make check-release-version` to check `VERSION`, the Docker plugin pin,
+  and the image version label against `caddy-security` in `go.mod`. Pass
+  `RELEASE_TAG=vX.Y.Z` to also check a proposed release tag.
 - Use `make sync-versions` to update dependency/plugin versions from remote Git
   tags in `Dockerfile` and `go.mod`.
 - Use `make sync` only when the full update flow is intended. It chains
@@ -41,8 +46,8 @@ behavior, dependency/version sync, release work, or CI-like validation.
 ```text
 github.com/greenpau/caddy-trace
 github.com/greenpau/caddy-security-secrets-aws-secrets-manager
-github.com/greenpau/go-authcrunch
 github.com/greenpau/caddy-security
+github.com/caddyserver/caddy
 ```
 
 It then rewrites:
@@ -50,11 +55,13 @@ It then rewrites:
 ```text
 Dockerfile
 go.mod
+VERSION
 ```
 
-The `org.opencontainers.image.version` label tracks the latest
-`go-authcrunch` tag selected by the sync target. The GHCR release tag in the
-Docker workflow uses this repository's top-level `VERSION` file instead.
+`make sync` writes `VERSION` and `org.opencontainers.image.version` from the
+selected `caddy-security` pin in `go.mod`, without its leading `v`. The GHCR
+release tag and AuthCrunch Git release tag use this same version. The
+`sync-release-version` helper implements metadata synchronization.
 
 After dependency sync, run or expect:
 
@@ -73,13 +80,13 @@ asked for that workflow.
 Treat these targets as mutating commands:
 
 - `build`: removes/recreates `bin/authcrunch` and rewrites `Caddyfile`.
-- `sync-versions`: rewrites `Dockerfile` and `go.mod`.
+- `sync-versions`: rewrites `Dockerfile`, `go.mod`, and `VERSION`.
 - `sync-mod`: can rewrite `go.mod` and `go.sum`.
 - `sync`: performs all sync/build side effects and then runs `sync-commit`.
-- `sync-commit`: stages `Dockerfile`, `Makefile`, `go.mod`, and `go.sum`, then
+- `sync-commit`: stages `Dockerfile`, `Makefile`, `VERSION`, `go.mod`, and `go.sum`, then
   prints the intended commit command. It does not create the commit.
-- `release`: patches `VERSION`, commits, creates an annotated tag, pushes
-  commits, and pushes tags.
+- `release`: validates the committed version, creates its annotated tag, pushes
+  the branch, and pushes only that release tag. It does not edit `VERSION`.
 
 `make dep`, `make sync-versions`, `make sync`, `go mod tidy`, `go mod verify`,
 `go mod download`, `go install`, Docker builds, and GoReleaser may require
@@ -93,11 +100,12 @@ for a release workflow.
 - `make release` runs module tidy/verify.
 - It requires the current branch to be `main`.
 - It requires a clean git worktree.
-- It runs `versioned -patch`.
-- It stages `VERSION`.
-- It creates a release commit with `released v<VERSION>`.
+- It requires `VERSION`, Docker plugin and image label, and `go.mod` to agree.
+- It rejects an existing release tag locally or on `origin`.
+- It does not increment, stage, or commit `VERSION`; run `make sync` and commit
+  its changes before releasing.
 - It creates an annotated `v<VERSION>` tag.
-- It pushes commits and tags.
+- It pushes the branch and that release tag.
 
 Never push commits or tags, create release tags, or run `make release` unless
 the user explicitly requested that action.

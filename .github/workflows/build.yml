@@ -44,4 +44,6 @@ jobs:
         go mod download
     - name: Build App
       run: |
+        make test-automation
+        make check-release-version
         make

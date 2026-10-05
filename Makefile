@@ -49,21 +49,31 @@ sync-versions:
 	@echo "$@: caddy-trace version: ${TRACE_PLUGIN_VERSION}"
 	$(eval CS_AWS_SM_PLUGIN_VERSION=$(shell git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/greenpau/caddy-security-secrets-aws-secrets-manager '*.*.*' | tail --lines=1 | cut -f2 | cut -d"/" -f3 | sed 's/v//'))
 	@echo "$@: caddy-security-secrets-aws-secrets-manager version: ${CS_AWS_SM_PLUGIN_VERSION}"
-	$(eval TARGET_LIB_VERSION=$(shell git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/greenpau/go-authcrunch '*.*.*' | tail --lines=1 | cut -f2 | cut -d"/" -f3 | sed 's/v//'))
-	@echo "$@: go-authcrunch version: ${TARGET_LIB_VERSION}"
 	$(eval TARGET_PLUGIN_VERSION=$(shell git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/greenpau/caddy-security '*.*.*' | tail --lines=1 | cut -f2 | cut -d"/" -f3 | sed 's/v//'))
 	@echo "$@: caddy-security version: ${TARGET_PLUGIN_VERSION}"
 	$(eval TARGET_CADDY_VERSION=$(shell git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/caddyserver/caddy 'v2.*.*' | tail --lines=1 | cut -f2 | cut -d"/" -f3 | sed 's/v//'))
 	@echo "$@: caddy version: ${TARGET_CADDY_VERSION}"
-	@$(SED_I) 's/org.opencontainers.image.version=[0-9]\.[0-9]*\.[0-9]*/org.opencontainers.image.version='"${TARGET_LIB_VERSION}"'/' Dockerfile
 	@$(SED_I) 's#github.com/caddyserver/caddy/v2 v[0-9]\.[0-9]*\.[0-9]*#github.com/caddyserver/caddy/v2 v'"${TARGET_CADDY_VERSION}"'#' go.mod
-	@$(SED_I) 's/caddy-security v[0-9]\.[0-9]*\.[0-9]*/caddy-security v'"${TARGET_PLUGIN_VERSION}"'/' go.mod
+	@$(SED_I) 's#\(github.com/greenpau/caddy-security \)v[^[:space:]]*#\1v'"${TARGET_PLUGIN_VERSION}"'#' go.mod
 	@$(SED_I) 's/^FROM caddy:[0-9]\.[0-9]*\.[0-9]*-builder AS builder$$/FROM caddy:'"${TARGET_CADDY_VERSION}"'-builder AS builder/' Dockerfile
 	@$(SED_I) 's/^FROM caddy:[0-9]\.[0-9]*\.[0-9]*$$/FROM caddy:'"${TARGET_CADDY_VERSION}"'/' Dockerfile
-	@$(SED_I) 's/caddy-security@v[0-9]\.[0-9]*\.[0-9]*/caddy-security@v'"${TARGET_PLUGIN_VERSION}"'/' Dockerfile
+	@$(SED_I) 's#\(github.com/greenpau/caddy-security@\)v[^[:space:]]*#\1v'"${TARGET_PLUGIN_VERSION}"'#' Dockerfile
 	@$(SED_I) 's/caddy-security-secrets-aws-secrets-manager@v[0-9]\.[0-9]*\.[0-9]*/caddy-security-secrets-aws-secrets-manager@v'"${CS_AWS_SM_PLUGIN_VERSION}"'/' Dockerfile
 	@$(SED_I) 's/caddy-trace@v[0-9]\.[0-9]*\.[0-9]*/caddy-trace@v'"${TRACE_PLUGIN_VERSION}"'/' Dockerfile
+	@$(MAKE) sync-release-version
 	@echo "$@: complete"
+
+.PHONY: sync-release-version
+sync-release-version:
+	@bash assets/scripts/release_version.sh sync
+
+.PHONY: check-release-version
+check-release-version:
+	@bash assets/scripts/release_version.sh check "$(RELEASE_TAG)"
+
+.PHONY: test-automation
+test-automation:
+	@PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s assets/scripts/tests -p 'test_*.py'
 
 .PHONY: sync-mod
 sync-mod:
@@ -75,27 +85,35 @@ sync-mod:
 .PHONY: sync-commit
 sync-commit:
 	@echo "$@: started"
-	@git add Dockerfile Makefile go.mod go.sum
-	$(eval TARGET_PLUGIN_VERSION=$(shell git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/greenpau/caddy-security '*.*.*' | tail --lines=1 | cut -f2 | cut -d"/" -f3 | sed 's/v//'))
-	@echo "git commit -m 'ops: upgraded to caddy-security v"${TARGET_PLUGIN_VERSION}"'"
+	@git add Dockerfile Makefile VERSION go.mod go.sum
+	@echo "git commit -m 'ops: upgraded to caddy-security v$$(cat VERSION)'"
 	@echo "$@: complete"
 
 .PHONY: sync
-sync: sync-versions sync-mod build sync-commit
+sync:
+	@$(MAKE) sync-versions
+	@$(MAKE) sync-mod
+	@$(MAKE) build
+	@$(MAKE) sync-commit
 	@echo "$@: complete"
 
 .PHONY: release
 release:
 	@echo "$@: started"
-	@go mod tidy;
-	@go mod verify;
 	@if [ $(GIT_BRANCH) != "main" ]; then echo "cannot release to non-main branch $(GIT_BRANCH)" && false; fi
 	@git diff-index --quiet HEAD -- || ( echo "git directory is dirty, commit changes first" && false )
-	@versioned -patch
-	@echo "Patched version"
-	@git add VERSION
-	@git commit -m "ops: released v`cat VERSION | head -1`"
+	@$(MAKE) check-release-version
+	@$(MAKE) sync-mod
+	@git diff-index --quiet HEAD -- || ( echo "module files changed, commit changes first" && false )
+	@release_version="$$(bash assets/scripts/release_version.sh)" || exit $$?; \
+		if git show-ref --verify --quiet "refs/tags/v$$release_version"; then \
+			echo "release v$$release_version already exists locally"; exit 1; \
+		fi; \
+		remote_tag="$$(git ls-remote --tags origin "refs/tags/v$$release_version")" || exit $$?; \
+		if [ -n "$$remote_tag" ]; then \
+			echo "release v$$release_version already exists on origin"; exit 1; \
+		fi
 	@git tag -a v`cat VERSION | head -1` -m "v`cat VERSION | head -1`"
 	@git push
-	@git push --tags
+	@git push origin "refs/tags/v$$(cat VERSION)"
 	@echo "$@: complete"

@@ -66,9 +66,10 @@ github.com/greenpau/caddy-security-secrets-aws-secrets-manager
 github.com/greenpau/caddy-trace
 ```
 
-It also rewrites `org.opencontainers.image.version` from the latest
-`github.com/greenpau/go-authcrunch` tag. Do not assume that label matches this
-repository's top-level `VERSION`; GitHub Docker release tags use `VERSION`.
+It also writes `VERSION` and `org.opencontainers.image.version` from the selected
+`github.com/greenpau/caddy-security` pin in `go.mod`, without its leading `v`.
+AuthCrunch Git releases and GHCR release tags use this same version.
+`make check-release-version` validates these values before release publishing.
 
 When manually changing dependency versions, update all relevant places:
 

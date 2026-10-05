@@ -29,6 +29,9 @@ jobs:
           git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
       - name: Extract version
         run: |
+          if [ "${{ inputs.publish_type }}" = "release" ]; then
+            make check-release-version
+          fi
           PKG_VERSION=$(cat VERSION | head -1)
           echo "PKG_VERSION=$PKG_VERSION" >> $GITHUB_ENV
       - name: Set up Docker Buildx

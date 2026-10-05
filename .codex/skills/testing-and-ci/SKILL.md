@@ -18,6 +18,11 @@ or general automation work rather than test/CI work, also use the repo-local
 
 ## Command Selection
 
+Use `make test-automation` for offline release/version regression tests. These
+use temporary local Git repositories and stub Go commands; they do not publish
+to GitHub. Use `make check-release-version` for local version consistency, with
+optional `RELEASE_TAG=vX.Y.Z` to validate a tag.
+
 Use direct Go commands for quick feedback:
 
 ```bash
@@ -50,14 +55,15 @@ Treat Makefile targets as potentially mutating commands.
 
 - `make build` removes and recreates `bin/authcrunch`.
 - `make build` rewrites `Caddyfile` using the built Caddy formatter.
-- `make sync-versions` queries remote Git tags and rewrites `Dockerfile` and
-  `go.mod` versions.
+- `make sync-versions` queries remote Git tags and rewrites `Dockerfile`,
+  `go.mod`, and `VERSION` to match the selected `caddy-security` version.
 - `make sync-mod` runs `go mod tidy` and `go mod verify`, which can rewrite
   `go.mod` and `go.sum`.
 - `make sync` chains version sync, module sync, build, and sync-commit output.
-- `make release` runs module tidy/verify, requires branch `main`, requires a
-  clean worktree, patches `VERSION`, commits, tags, pushes commits, and pushes
-  tags.
+- `make release` requires branch `main`, a clean worktree, and matching committed
+  release metadata. It runs module tidy/verify, rejects an existing local or
+  remote release tag, tags the committed version, and pushes the branch and that
+  tag. It does not modify `VERSION` or create a commit.
 
 Review the diff after Makefile targets before keeping generated source changes.
 Generated `Caddyfile`, `go.mod`, `go.sum`, `Dockerfile`, or `VERSION` changes

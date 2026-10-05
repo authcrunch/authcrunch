@@ -14,7 +14,7 @@ LABEL org.opencontainers.image.title=authcrunch
 LABEL org.opencontainers.image.description="Authentication Portal"
 LABEL org.opencontainers.image.url=https://github.com/greenpau/caddy-security
 LABEL org.opencontainers.image.source=https://github.com/greenpau/caddy-security
-LABEL org.opencontainers.image.version=1.3.11
+LABEL org.opencontainers.image.version=1.4.1
 LABEL maintainer="greenpau"
 
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
