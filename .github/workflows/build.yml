@@ -4,46 +4,70 @@ name: build
 on:
   push:
     branches:
-    - main
+      - main
   pull_request:
     branches:
-    - main
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  GOPROXY: https://proxy.golang.org,direct
+  GOTOOLCHAIN: local
 
 jobs:
-  core:
-    strategy:
-      matrix:
-        go-version: [1.25.x]
-        platform: [ubuntu-latest]
-    name: Build
-    runs-on: ${{ matrix.platform }}
-    env:
-      GOBIN: /home/runner/.local/bin
+  release-config:
+    name: Release configuration
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-    - name: Install Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: ${{ matrix.go-version }}
-      id: go
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v4
-    - name: Amend Environment Path
-      run: |
-        mkdir -p /home/runner/.local/bin
-        echo "/home/runner/.local/bin" >> $GITHUB_PATH
-    - name: Install prerequisites
-      run: |
-        sudo apt-get --assume-yes install make
-        sudo apt-get --assume-yes install libnss3-tools
-        sudo apt-get update
-    - name: Install Go modules
-      run: |
-        make dep
-        go mod tidy
-        go mod verify
-        go mod download
-    - name: Build App
-      run: |
-        make test-automation
-        make check-release-version
-        make
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check release configuration
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
+        with:
+          version: v2.19.0
+          args: check
+  core:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.26.x'
+          check-latest: true
+          cache-dependency-path: go.sum
+      - name: Validate workflows
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+      - name: Verify Go modules
+        run: |
+          go mod tidy -diff
+          go mod download
+          go mod verify
+      - name: Check repository automation
+        run: |
+          make test-automation
+          make check-release-version
+      - name: Test
+        run: go test ./...
+      - name: Build
+        run: make
+      - name: Check generated changes
+        run: git diff --exit-code -- Caddyfile go.mod go.sum

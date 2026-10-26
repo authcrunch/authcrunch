@@ -1,3 +1,4 @@
+---
 name: release
 
 on:
@@ -6,40 +7,60 @@ on:
       - 'v*'
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  GOPROXY: https://proxy.golang.org,direct
+  GOTOOLCHAIN: local
 
 jobs:
   goreleaser:
+    name: Publish release
     runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write # Create GitHub releases and upload release assets.
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - run: git fetch --force --tags
+          persist-credentials: false
       - name: Check release version
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: make check-release-version
-      - uses: actions/setup-go@v3
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: "~1.25"
+          go-version: '1.26.x'
           check-latest: true
-          cache: true
-      - name: Generate dependency changelog
-        shell: bash
+          cache: false
+      - name: Verify Go modules
         run: |
-          changelog_file="${RUNNER_TEMP}/dependency-changelog.md"
-          assets/scripts/generate_dependency_changelog.sh > "${changelog_file}"
-          {
-            echo "AUTHCRUNCH_DEPENDENCY_CHANGELOG<<AUTHCRUNCH_DEPENDENCY_CHANGELOG_EOF"
-            cat "${changelog_file}"
-            echo "AUTHCRUNCH_DEPENDENCY_CHANGELOG_EOF"
-          } >> "${GITHUB_ENV}"
-      - uses: goreleaser/goreleaser-action@v4
+          go mod tidy -diff
+          go mod download
+          go mod verify
+      - name: Check repository automation
+        run: make test-automation
+      - name: Test
+        run: go test ./...
+      - name: Generate dependency changelog
+        run: assets/scripts/generate_dependency_changelog.sh > "${RUNNER_TEMP}/dependency-changelog.md"
+      - name: Publish release
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
         with:
-          distribution: goreleaser
-          version: latest
-          args: release --clean --timeout 60m
+          version: v2.19.0
+          args: >-
+            release --clean --timeout 60m
+            --release-footer "${{ runner.temp }}/dependency-changelog.md"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GOPATH: /home/runner/go

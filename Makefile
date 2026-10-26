@@ -47,6 +47,8 @@ sync-versions:
 	@echo "$@: started"
 	$(eval TRACE_PLUGIN_VERSION=$(shell git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/greenpau/caddy-trace '*.*.*' | tail --lines=1 | cut -f2 | cut -d"/" -f3 | sed 's/v//'))
 	@echo "$@: caddy-trace version: ${TRACE_PLUGIN_VERSION}"
+	$(eval TLS_CONSUL_PLUGIN_VERSION=$(shell git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/pteich/caddy-tlsconsul '*.*.*' | tail --lines=1 | cut -f2 | cut -d"/" -f3 | sed 's/v//'))
+	@echo "$@: caddy-tlsconsul version: ${TLS_CONSUL_PLUGIN_VERSION}"
 	$(eval CS_AWS_SM_PLUGIN_VERSION=$(shell git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/greenpau/caddy-security-secrets-aws-secrets-manager '*.*.*' | tail --lines=1 | cut -f2 | cut -d"/" -f3 | sed 's/v//'))
 	@echo "$@: caddy-security-secrets-aws-secrets-manager version: ${CS_AWS_SM_PLUGIN_VERSION}"
 	$(eval TARGET_PLUGIN_VERSION=$(shell git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/greenpau/caddy-security '*.*.*' | tail --lines=1 | cut -f2 | cut -d"/" -f3 | sed 's/v//'))
@@ -55,11 +57,14 @@ sync-versions:
 	@echo "$@: caddy version: ${TARGET_CADDY_VERSION}"
 	@$(SED_I) 's#github.com/caddyserver/caddy/v2 v[0-9]\.[0-9]*\.[0-9]*#github.com/caddyserver/caddy/v2 v'"${TARGET_CADDY_VERSION}"'#' go.mod
 	@$(SED_I) 's#\(github.com/greenpau/caddy-security \)v[^[:space:]]*#\1v'"${TARGET_PLUGIN_VERSION}"'#' go.mod
+	@$(SED_I) 's#\(github.com/pteich/caddy-tlsconsul \)v[^[:space:]]*#\1v'"${TLS_CONSUL_PLUGIN_VERSION}"'#' go.mod
 	@$(SED_I) 's/^FROM caddy:[0-9]\.[0-9]*\.[0-9]*-builder AS builder$$/FROM caddy:'"${TARGET_CADDY_VERSION}"'-builder AS builder/' Dockerfile
 	@$(SED_I) 's/^FROM caddy:[0-9]\.[0-9]*\.[0-9]*$$/FROM caddy:'"${TARGET_CADDY_VERSION}"'/' Dockerfile
 	@$(SED_I) 's#\(github.com/greenpau/caddy-security@\)v[^[:space:]]*#\1v'"${TARGET_PLUGIN_VERSION}"'#' Dockerfile
+	@$(SED_I) 's#\(github.com/greenpau/caddy-security/plugins/[^@[:space:]]*@\)v[^[:space:]]*#\1v'"${TARGET_PLUGIN_VERSION}"'#' Dockerfile
 	@$(SED_I) 's/caddy-security-secrets-aws-secrets-manager@v[0-9]\.[0-9]*\.[0-9]*/caddy-security-secrets-aws-secrets-manager@v'"${CS_AWS_SM_PLUGIN_VERSION}"'/' Dockerfile
 	@$(SED_I) 's/caddy-trace@v[0-9]\.[0-9]*\.[0-9]*/caddy-trace@v'"${TRACE_PLUGIN_VERSION}"'/' Dockerfile
+	@$(SED_I) 's#\(github.com/pteich/caddy-tlsconsul@\)v[^[:space:]]*#\1v'"${TLS_CONSUL_PLUGIN_VERSION}"'#' Dockerfile
 	@$(MAKE) sync-release-version
 	@echo "$@: complete"
 

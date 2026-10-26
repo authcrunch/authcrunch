@@ -137,8 +137,22 @@ class ReleaseVersionTests(unittest.TestCase):
         self.assertEqual(self.read("VERSION"), "1.5.0-rc.1\n")
 
     def test_sync_versions_updates_release_metadata(self):
-        self.write("go.mod", self.read("go.mod").replace("v1.4.1", "v1.4.2-rc.1"))
-        self.write("Dockerfile", self.read("Dockerfile").replace("v1.4.1", "v1.4.2-rc.1"))
+        go_mod = self.read("go.mod").replace("v1.4.1", "v1.4.2-rc.1")
+        self.write("go.mod", go_mod.replace(
+            "\n)\n", "\n\tgithub.com/pteich/caddy-tlsconsul v1.4.0\n)\n"))
+        plugins = (
+            "github.com/greenpau/caddy-security/plugins/claims-enrichment-static",
+            "github.com/greenpau/caddy-security/plugins/session-and-refresh-storage-sqlite",
+        )
+        dockerfile = self.read("Dockerfile").replace("v1.4.1", "v1.4.2-rc.1")
+        dockerfile = dockerfile.replace(
+            "    --with github.com/greenpau/caddy-security@v1.4.2-rc.1\n",
+            "    --with github.com/greenpau/caddy-security@v1.4.2-rc.1 \\\n"
+            + "".join(f"    --with {plugin}@v1.4.2-rc.1 \\\n" for plugin in plugins)
+            + "    --with github.com/greenpau/caddy-security-secrets-aws-secrets-manager@v1.0.1 \\\n"
+            + "    --with github.com/pteich/caddy-tlsconsul@v1.4.0\n",
+        )
+        self.write("Dockerfile", dockerfile)
         self.init_git()
         bin_dir = self.base / "bin"
         bin_dir.mkdir()
@@ -150,6 +164,7 @@ class ReleaseVersionTests(unittest.TestCase):
             '  case "$8" in\n'
             '    */caddy-security) version=v1.4.2 ;;\n'
             '    */caddy-trace) version=v1.1.13 ;;\n'
+            '    */caddy-tlsconsul) version=v1.5.0 ;;\n'
             '    */caddy-security-secrets-aws-secrets-manager) version=v1.0.1 ;;\n'
             '    */caddy) version=v2.11.8 ;;\n'
             '    *) exit 1 ;;\n'
@@ -164,6 +179,14 @@ class ReleaseVersionTests(unittest.TestCase):
         self.run_cmd("make", "check-release-version", "RELEASE_TAG=v1.4.2")
         self.assertEqual(self.read("VERSION"), "1.4.2\n")
         self.assertIn("FROM caddy:2.11.8-builder", self.read("Dockerfile"))
+        for plugin in plugins:
+            self.assertIn(f"--with {plugin}@v1.4.2 \\\n", self.read("Dockerfile"))
+        self.assertNotIn("v1.4.2-rc.1", self.read("Dockerfile"))
+        self.assertIn("--with github.com/greenpau/caddy-security-secrets-aws-secrets-manager@v1.0.1 \\\n",
+                      self.read("Dockerfile"))
+        self.assertIn("github.com/pteich/caddy-tlsconsul v1.5.0\n", self.read("go.mod"))
+        self.assertIn("--with github.com/pteich/caddy-tlsconsul@v1.5.0\n",
+                      self.read("Dockerfile"))
 
     def test_release_tags_synced_commit_without_changing_version(self):
         self.init_release(synced=True)

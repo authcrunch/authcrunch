@@ -112,3 +112,12 @@ When asked to "create commit message for the change", create a file in
 `tmp/commits` and place the commit message in that file. Commit message files in
 `tmp/commits` are working artifacts and should not be committed unless
 explicitly requested. Prefix the file name with `YYYYMMDD_HHMM_`.
+
+After generating a commit message file, the final response must include a link
+to the file and a ready-to-run `git commit -F` command pointing to that exact
+file. Use its repository-relative path and shell quoting as needed. Replace
+the example filename below with the actual generated filename:
+
+```bash
+git commit -F 'tmp/commits/YYYYMMDD_HHMM_description.txt'
+```
