@@ -1,0 +1,78 @@
+name: OSS-Fuzz integration
+
+on:
+  workflow_dispatch:
+    inputs:
+      integration_repository:
+        description: Repository containing the OSS-Fuzz integration
+        type: string
+        default: google/oss-fuzz
+      integration_ref:
+        description: OSS-Fuzz branch or commit to validate
+        type: string
+        default: master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oss-fuzz-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  validate:
+    name: Build and exercise ${{ matrix.sanitizer }} targets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer: [address, coverage]
+    steps:
+      - name: Check out AuthCrunch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check out OSS-Fuzz integration
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ inputs.integration_repository }}
+          ref: ${{ inputs.integration_ref }}
+          path: .tmp/oss-fuzz
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
+        with:
+          python-version: '3.12'
+      - name: Install helper dependencies
+        run: python3 -m pip install PyYAML==6.0.2 requests==2.31.0
+      - name: Build OSS-Fuzz image and targets
+        working-directory: .tmp/oss-fuzz
+        env:
+          SANITIZER: ${{ matrix.sanitizer }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/oss-fuzz-logs"
+          python3 infra/helper.py build_image authcrunch 2>&1 |
+            tee "$RUNNER_TEMP/oss-fuzz-logs/image.log"
+          python3 infra/helper.py build_fuzzers --sanitizer "$SANITIZER" \
+            authcrunch "$GITHUB_WORKSPACE" 2>&1 |
+            tee "$RUNNER_TEMP/oss-fuzz-logs/build.log"
+      - name: Exercise every target and its seed corpus
+        working-directory: .tmp/oss-fuzz
+        env:
+          SANITIZER: ${{ matrix.sanitizer }}
+        run: |
+          python3 infra/helper.py check_build --sanitizer "$SANITIZER" \
+            authcrunch 2>&1 | tee "$RUNNER_TEMP/oss-fuzz-logs/check.log"
+      - name: Upload validation logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: oss-fuzz-${{ matrix.sanitizer }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/oss-fuzz-logs/
+          if-no-files-found: warn
+          retention-days: 14
