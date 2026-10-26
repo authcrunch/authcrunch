@@ -25,7 +25,7 @@ defaults:
 
 jobs:
   validate:
-    name: Build and exercise ${{ matrix.sanitizer }} targets
+    name: Validate ${{ matrix.sanitizer }} targets
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     strategy:
@@ -62,6 +62,9 @@ jobs:
             authcrunch "$GITHUB_WORKSPACE" 2>&1 |
             tee "$RUNNER_TEMP/oss-fuzz-logs/build.log"
       - name: Exercise every target and its seed corpus
+        # Native Go coverage binaries are test executables. OSS-Fuzz's own CI
+        # compiles coverage builds and runs check_build only for fuzzing builds.
+        if: ${{ matrix.sanitizer == 'address' }}
         working-directory: .tmp/oss-fuzz
         env:
           SANITIZER: ${{ matrix.sanitizer }}

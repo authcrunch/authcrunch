@@ -29,15 +29,16 @@ python3 infra/helper.py build_image --pull authcrunch
 python3 infra/helper.py build_fuzzers --sanitizer address authcrunch /path/to/authcrunch
 python3 infra/helper.py check_build --sanitizer address authcrunch
 python3 infra/helper.py build_fuzzers --sanitizer coverage authcrunch /path/to/authcrunch
-python3 infra/helper.py check_build --sanitizer coverage authcrunch
 ```
 
 The source mount is writable: use a disposable checkout because the native Go
 adapter and build preparation modify module metadata and source during conversion.
 Do not point the source mount at your working checkout with uncommitted changes.
 
-The **OSS-Fuzz integration** GitHub Actions workflow runs these builds and smoke
-checks on demand and uploads logs. Its integration repository/ref inputs allow
+The **OSS-Fuzz integration** GitHub Actions workflow runs these builds on demand,
+exercises all address targets and their seed corpora, and uploads logs. Native Go
+coverage binaries are test executables, so the workflow validates their
+compilation, matching OSS-Fuzz's upstream CI. Its repository/ref inputs allow
 testing an enrollment branch before it merges into OSS-Fuzz. After acceptance,
 use the defaults `google/oss-fuzz` and `master`. OSS-Fuzz then supplies continuous
 fuzzing; the manual workflow is bounded validation, not a replacement for it.
