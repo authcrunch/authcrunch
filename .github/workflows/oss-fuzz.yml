@@ -56,7 +56,7 @@ jobs:
           SANITIZER: ${{ matrix.sanitizer }}
         run: |
           mkdir -p "$RUNNER_TEMP/oss-fuzz-logs"
-          python3 infra/helper.py build_image authcrunch 2>&1 |
+          python3 infra/helper.py build_image --pull authcrunch 2>&1 |
             tee "$RUNNER_TEMP/oss-fuzz-logs/image.log"
           python3 infra/helper.py build_fuzzers --sanitizer "$SANITIZER" \
             authcrunch "$GITHUB_WORKSPACE" 2>&1 |

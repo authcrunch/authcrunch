@@ -1,5 +1,8 @@
 # OSS-Fuzz integration
 
+Enrollment is proposed in [google/oss-fuzz#16362](https://github.com/google/oss-fuzz/pull/16362).
+OSS-Fuzz service activation requires upstream acceptance and deployment.
+
 AuthCrunch's enrollment targets the Caddy Security adapter and the underlying
 go-authcrunch authentication and authorization library. The integration lives in
 [`projects/authcrunch` in OSS-Fuzz](https://github.com/google/oss-fuzz/tree/master/projects/authcrunch).
@@ -22,7 +25,7 @@ checkout (replace `/path/to/authcrunch` with this repository's absolute path):
 
 ```sh
 python3 -m pip install PyYAML==6.0.2 requests==2.31.0
-python3 infra/helper.py build_image authcrunch
+python3 infra/helper.py build_image --pull authcrunch
 python3 infra/helper.py build_fuzzers --sanitizer address authcrunch /path/to/authcrunch
 python3 infra/helper.py check_build --sanitizer address authcrunch
 python3 infra/helper.py build_fuzzers --sanitizer coverage authcrunch /path/to/authcrunch
@@ -38,6 +41,13 @@ checks on demand and uploads logs. Its integration repository/ref inputs allow
 testing an enrollment branch before it merges into OSS-Fuzz. After acceptance,
 use the defaults `google/oss-fuzz` and `master`. OSS-Fuzz then supplies continuous
 fuzzing; the manual workflow is bounded validation, not a replacement for it.
+
+While enrollment is pending, validate the proposal with:
+
+```sh
+gh workflow run oss-fuzz.yml --repo authcrunch/authcrunch \
+  -f integration_repository=greenpau/oss-fuzz -f integration_ref=enroll-authcrunch
+```
 
 When updating foundation versions, run both build modes. A renamed or removed
 fuzz function must be updated in OSS-Fuzz's `fuzzers.json`; the build fails if a
