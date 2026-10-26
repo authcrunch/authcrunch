@@ -17,10 +17,6 @@ RUN apt-get update \
 COPY . /src
 WORKDIR /src
 
-# Fetch exact dependencies, preserve editable copies of the two foundation
-# libraries, and compile their tests while network access is still available.
-RUN bash .oss-scanner/prepare.sh
-
 # Prime the same isolated tool environment used by make e2e-login-test.
 # Playwright installs the browser's OS libraries during this online build only.
 RUN E2E_LOGIN_INSTALL_DEPS=1 python3 - <<'PY'
@@ -30,8 +26,18 @@ sys.path.insert(0, "/src/assets/scripts")
 from e2e_login import prepare_tools
 output = Path("/opt/oss-scanner/setup")
 output.mkdir(parents=True, exist_ok=True)
-prepare_tools(output)
+try:
+    prepare_tools(output)
+except Exception:
+    log = output / "setup.log"
+    if log.exists():
+        print(log.read_text(), file=sys.stderr)
+    raise
 PY
+
+# Fetch exact dependencies, preserve editable copies of the two foundation
+# libraries, and compile their tests while network access is still available.
+RUN bash .oss-scanner/prepare.sh
 
 # Audits and rebuilds must use the prepared environment, without remote lookups.
 ENV GOPROXY=off

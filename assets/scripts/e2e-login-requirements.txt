@@ -1,5 +1,6 @@
 # Isolated tooling only; no changes to the host Python installation.
 playwright==1.64.1
-pyee==14.0.0
+# pyee 14 requires Python 3.12; preserve the documented Python 3.11 support.
+pyee==13.0.1
 greenlet==3.5.6
 typing_extensions==4.15.0
