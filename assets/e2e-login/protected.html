@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>AuthCrunch · Protected application</title>
+<style>
+  :root { font: 17px/1.6 system-ui, sans-serif; color: #eaf3ff; background: #0b1525; }
+  body { max-width: 680px; margin: 12vh auto; padding: 24px; }
+  main { border: 1px solid #30465e; border-radius: 20px; padding: 32px; background: #132239; }
+  small { color: #82e3b5; letter-spacing: .12em; } h1 { line-height: 1.15; font-size: clamp(2rem, 6vw, 3.5rem); }
+  a { color: #9bd5ff; display: inline-block; margin: 12px 24px 0 0; }
+</style>
+<main data-testid="protected-content">
+  <small>AUTHCRUNCH / BROWSER LOGIN TEST</small>
+  <h1>You’re signed in.</h1>
+  <p>This application is protected by the running AuthCrunch authorization policy.
+     Your browser completed the username and password flow and presented an accepted session cookie.</p>
+  <a href="/auth/portal">Open portal</a>
+  <a href="/auth/whoami">Inspect identity</a>
+  <a href="/auth/logout">Sign out</a>
+</main>
+</html>

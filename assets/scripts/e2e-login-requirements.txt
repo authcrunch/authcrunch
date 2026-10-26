@@ -1,0 +1,5 @@
+# Isolated tooling only; no changes to the host Python installation.
+playwright==1.64.1
+pyee==14.0.0
+greenlet==3.5.6
+typing_extensions==4.15.0

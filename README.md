@@ -4,6 +4,12 @@
 
 Authentication Portal based on [Caddy Security](https://github.com/greenpau/caddy-security).
 
+Run `make e2e-login-test` to build an isolated AuthCrunch instance and exercise
+the full username/password flow in a real browser. It produces an offline HTML
+report with screenshots, assertions, browser traces, and server diagnostics.
+See [the login test guide](assets/e2e-login/README.md) for prerequisites, options,
+and the on-demand GitHub Actions workflow.
+
 Run `make sync` to update dependency versions, verify modules, and rebuild. The
 target also stages `Dockerfile`, `Makefile`, `VERSION`, `go.mod`, and `go.sum` and
 prints a suggested commit command.

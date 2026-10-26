@@ -1,0 +1,71 @@
+{
+	admin off
+	persist_config off
+	auto_https disable_redirects
+	skip_install_trust
+	on_demand_tls {
+		ask http://localhost:{$E2E_LOGIN_ASK_PORT:5555}/
+	}
+	storage file_system "{$E2E_LOGIN_RUNTIME}/storage"
+	log {
+		level DEBUG
+		format json
+	}
+	security {
+		local identity store e2edb {
+			realm local
+			path :memory:
+			user jsmith {
+				name "John Smith"
+				email jsmith@example.test
+				password {env.E2E_LOGIN_PASSWORD}
+				roles authp/user
+			}
+		}
+		authentication portal e2eportal {
+			enable identity store e2edb
+			crypto default token lifetime 300
+			crypto key sign-verify {env.E2E_LOGIN_SIGNING_KEY}
+			cookie path /
+			trust login redirect uri domain exact {$E2E_LOGIN_HOST} path exact /protected
+		}
+		authorization policy e2epolicy {
+			crypto key verify {env.E2E_LOGIN_SIGNING_KEY}
+			set auth url {$E2E_LOGIN_ORIGIN}/auth/login
+			allow roles authp/user
+		}
+	}
+}
+
+http://localhost:{$E2E_LOGIN_ASK_PORT:5555} {
+	bind 127.0.0.1
+	log {
+		format json
+	}
+	@allowed_localhost query domain=localhost
+	respond @allowed_localhost 200
+	respond 400
+}
+
+{$E2E_LOGIN_ORIGIN} {
+	bind 127.0.0.1
+	tls internal {
+		on_demand
+	}
+	log {
+		format json
+	}
+	route {
+		respond /healthz "{$E2E_LOGIN_HEALTH}" 200
+		route /auth/* {
+			authenticate with e2eportal
+		}
+		route /protected {
+			authorize with e2epolicy
+			root * "{$E2E_LOGIN_FIXTURES}"
+			rewrite * /protected.html
+			file_server
+		}
+		respond "Not found" 404
+	}
+}

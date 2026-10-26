@@ -1,0 +1,78 @@
+name: E2E login test
+
+on:
+  workflow_dispatch:
+    inputs:
+      profiles:
+        description: Browser profiles to exercise
+        type: choice
+        default: desktop,mobile
+        options:
+          - desktop,mobile
+          - desktop
+          - mobile
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-login-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  login:
+    name: Username and password browser journey
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GOPROXY: https://proxy.golang.org,direct
+      GOTOOLCHAIN: local
+      PYTHONDONTWRITEBYTECODE: '1'
+      E2E_LOGIN_OUTPUT: .tmp/e2e-login-ci/report
+      E2E_LOGIN_PROFILES: ${{ inputs.profiles }}
+      E2E_LOGIN_INSTALL_DEPS: '1'
+    steps:
+      - name: Check out candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+      - name: Set up Python
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
+        with:
+          python-version: '3.12'
+      - name: Run browser login test
+        timeout-minutes: 22
+        # Leave time for the harness to clean up and write evidence before the
+        # step deadline. Each child build/browser operation is also bounded.
+        run: timeout --signal=TERM --kill-after=20s 20m make e2e-login-test
+      - name: Finalize report and job summary
+        if: ${{ always() }}
+        timeout-minutes: 2
+        run: |
+          python3 assets/scripts/e2e_login.py --finalize --output "$E2E_LOGIN_OUTPUT"
+          cat "$E2E_LOGIN_OUTPUT/summary.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload report, debug data and screenshots
+        id: report
+        if: ${{ always() }}
+        timeout-minutes: 5
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: authcrunch-e2e-login-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .tmp/e2e-login-ci/report/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
+      - name: Link downloadable report
+        if: ${{ always() && steps.report.outcome == 'success' }}
+        env:
+          ARTIFACT_URL: ${{ steps.report.outputs.artifact-url }}
+        run: printf '\n[Download the complete login report](%s)\n' "$ARTIFACT_URL" >> "$GITHUB_STEP_SUMMARY"

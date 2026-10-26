@@ -80,6 +80,13 @@ check-release-version:
 test-automation:
 	@PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s assets/scripts/tests -p 'test_*.py'
 
+# Builds an isolated instance and provisions a pinned browser on first use.
+# Configuration is passed through E2E_LOGIN_* environment/Make variables.
+export E2E_LOGIN_OUTPUT E2E_LOGIN_PROFILES E2E_LOGIN_BINARY E2E_LOGIN_INSTALL_DEPS E2E_LOGIN_ASK_PORT
+.PHONY: e2e-login-test
+e2e-login-test:
+	@PYTHONDONTWRITEBYTECODE=1 python3 assets/scripts/e2e_login.py
+
 .PHONY: sync-mod
 sync-mod:
 	@echo "$@: started"
