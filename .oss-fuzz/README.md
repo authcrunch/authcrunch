@@ -28,6 +28,7 @@ python3 -m pip install PyYAML==6.0.2 requests==2.31.0
 python3 infra/helper.py build_image --pull authcrunch
 python3 infra/helper.py build_fuzzers --sanitizer address authcrunch /path/to/authcrunch
 python3 infra/helper.py check_build --sanitizer address authcrunch
+python3 infra/helper.py run_fuzzer authcrunch oidc_request_objects -- -runs=0
 python3 infra/helper.py build_fuzzers --sanitizer coverage authcrunch /path/to/authcrunch
 ```
 
@@ -42,6 +43,10 @@ compilation, matching OSS-Fuzz's upstream CI. Its repository/ref inputs allow
 testing an enrollment branch before it merges into OSS-Fuzz. After acceptance,
 use the defaults `google/oss-fuzz` and `master`. OSS-Fuzz then supplies continuous
 fuzzing; the manual workflow is bounded validation, not a replacement for it.
+
+The workflow explicitly replays every target's seed corpus with `-runs=0`.
+`check_build` checks binary compatibility and startup, but currently skips its
+seed-corpus replay; both checks are needed to validate the enrollment.
 
 While enrollment is pending, validate the proposal with:
 

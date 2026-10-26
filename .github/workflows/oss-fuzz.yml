@@ -71,6 +71,12 @@ jobs:
         run: |
           python3 infra/helper.py check_build --sanitizer "$SANITIZER" \
             authcrunch 2>&1 | tee "$RUNNER_TEMP/oss-fuzz-logs/check.log"
+          python3 -c 'import json; print("\n".join(t["name"] for t in json.load(open("projects/authcrunch/fuzzers.json"))))' \
+            > "$RUNNER_TEMP/oss-fuzz-targets"
+          while IFS= read -r target; do
+            python3 infra/helper.py run_fuzzer authcrunch "$target" -- -runs=0 2>&1 |
+              tee "$RUNNER_TEMP/oss-fuzz-logs/seed-$target.log"
+          done < "$RUNNER_TEMP/oss-fuzz-targets"
       - name: Upload validation logs
         if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
