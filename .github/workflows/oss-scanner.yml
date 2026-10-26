@@ -1,0 +1,44 @@
+name: OSS Scanner environment
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.oss-scanner/**'
+      - '.github/workflows/oss-scanner.yml'
+      - 'assets/e2e-login/**'
+      - 'assets/scripts/e2e*'
+      - 'assets/scripts/tests/**'
+      - 'main.go'
+      - 'go.mod'
+      - 'go.sum'
+      - 'Makefile'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oss-scanner-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  offline-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out audit target
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build prepared audit environment
+        run: docker build --file .oss-scanner/Dockerfile --tag authcrunch-oss-scanner:check .
+      - name: Verify builds and login tests without network access
+        timeout-minutes: 10
+        run: |
+          docker run --rm --network none authcrunch-oss-scanner:check bash -euc '
+            cd /src
+            go build -mod=readonly -p 2 -o /tmp/authcrunch-audit .
+            go test -mod=readonly ./...
+            make test-automation
+            make e2e-login-test E2E_LOGIN_ASK_PORT=0
+          '

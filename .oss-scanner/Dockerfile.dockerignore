@@ -1,0 +1,8 @@
+.tmp
+tmp
+bin
+.coverage
+.doc
+dist
+vendor
+**/__pycache__
