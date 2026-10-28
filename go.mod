@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/caddyserver/caddy/v2 v2.11.7
-	github.com/greenpau/caddy-security v1.5.0
+	github.com/greenpau/caddy-security v1.6.2
 	github.com/greenpau/caddy-security-secrets-aws-secrets-manager v1.0.1
 	github.com/greenpau/caddy-trace v1.1.13
 	github.com/pteich/caddy-tlsconsul v1.5.0
@@ -93,7 +93,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.22 // indirect
 	github.com/googleapis/gax-go/v2 v2.25.0 // indirect
-	github.com/greenpau/go-authcrunch v1.4.1 // indirect
+	github.com/greenpau/go-authcrunch v1.5.0 // indirect
 	github.com/greenpau/go-authcrunch-secrets-aws-secrets-manager v1.0.3 // indirect
 	github.com/greenpau/versioned v1.0.36 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0 // indirect
